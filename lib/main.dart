@@ -1,20 +1,37 @@
 
 import 'package:flutter/material.dart';
 
-void main() => runApp(
-      const MaterialApp(
-        debugShowCheckedModeBanner: false,
-        home: CartScreen(),
+void main() {
+  runApp(
+    MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'Mini Shopping Cart',
+      theme: ThemeData(
+        useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: oceanBlue,
+          brightness: Brightness.light,
+        ).copyWith(
+          primary: oceanBlue,
+          surface: Colors.white,
+        ),
+        scaffoldBackgroundColor: pageColor,
+        appBarTheme: const AppBarTheme(
+          backgroundColor: navyBlue,
+          foregroundColor: Colors.white,
+          elevation: 0,
+        ),
       ),
-    );
+      home: const CartScreen(),
+    ),
+  );
+}
 
-// App colors
-const Color teal = Color(0xFF117F87);
-const Color darkTeal = Color(0xFF095B63);
-const Color pageColor = Color(0xFFF3F8F9);
-const Color borderColor = Color(0xFFDCE8EA);
+const Color oceanBlue = Color(0xFF167DAD);
+const Color navyBlue = Color(0xFF102A43);
+const Color pageColor = Color(0xFFF1F7FB);
+const Color borderColor = Color(0xFFD7E7F0);
 
-// Model representing a shopping cart item
 class CartItem {
   String name;
   double price;
@@ -29,7 +46,6 @@ class CartItem {
   });
 }
 
-// Main shopping cart screen
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
 
@@ -38,14 +54,10 @@ class CartScreen extends StatefulWidget {
 }
 
 class _CartScreenState extends State<CartScreen> {
-  // Cart data and input controllers
   final List<CartItem> _items = [];
-  final TextEditingController _nameController =
-      TextEditingController();
-  final TextEditingController _priceController =
-      TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _priceController = TextEditingController();
 
-  // Validation error messages
   String? _nameError;
   String? _priceError;
 
@@ -53,32 +65,22 @@ class _CartScreenState extends State<CartScreen> {
   void initState() {
     super.initState();
 
-    // Preload sample shopping items
     _items.addAll([
       CartItem(name: 'Rice', price: 60.00, quantity: 2),
-      CartItem(
-        name: 'Eggs',
-        price: 8.00,
-        quantity: 12,
-        gotIt: true,
-      ),
+      CartItem(name: 'Eggs', price: 8.00, quantity: 12, gotIt: true),
       CartItem(name: 'Milk', price: 95.00, quantity: 1),
     ]);
   }
 
-  // Calculate the total price of all items
   double get _total {
     return _items.fold(
-      0.0,
+      0,
       (sum, item) => sum + item.price * item.quantity,
     );
   }
 
-  // Count items marked as got it
-  int get _gotItCount =>
-      _items.where((item) => item.gotIt).length;
+  int get _gotItCount => _items.where((item) => item.gotIt).length;
 
-  // Increase quantity, up to a maximum of 99
   void _increase(int index) {
     setState(() {
       if (_items[index].quantity < 99) {
@@ -87,7 +89,6 @@ class _CartScreenState extends State<CartScreen> {
     });
   }
 
-  // Decrease quantity, with a minimum of 1
   void _decrease(int index) {
     setState(() {
       if (_items[index].quantity > 1) {
@@ -96,86 +97,39 @@ class _CartScreenState extends State<CartScreen> {
     });
   }
 
-  // Toggle the got-it checkbox
   void _toggle(int index, bool? value) {
     setState(() {
       _items[index].gotIt = value ?? false;
     });
   }
 
-  // Validate and add a new item
   void _addItem() {
     final name = _nameController.text.trim();
     final price = double.tryParse(_priceController.text.trim());
 
     setState(() {
-      _nameError =
-          name.isEmpty ? 'Enter an item name' : null;
-
+      _nameError = name.isEmpty ? 'Enter an item name' : null;
       _priceError =
-          price == null || price <= 0
-              ? 'Enter a price greater than 0'
-              : null;
-    });
+          price == null || price <= 0 ? 'Enter a price greater than 0' : null;
 
-    // Stop if either input is invalid
-    if (_nameError != null || _priceError != null) {
-      return;
-    }
+      if (_nameError != null || _priceError != null) {
+        return;
+      }
 
-    setState(() {
-      _items.add(
-        CartItem(
-          name: name,
-          price: price!,
-        ),
-      );
-
-      // Clear the fields after adding successfully
+      _items.add(CartItem(name: name, price: price!));
       _nameController.clear();
       _priceController.clear();
-      _nameError = null;
-      _priceError = null;
     });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('$name added to your cart.'),
-        duration: const Duration(seconds: 2),
-      ),
-    );
   }
 
-  // Remove checked items and give feedback to the user
   void _clearChecked() {
-    final checkedCount =
-        _items.where((item) => item.gotIt).length;
-
-    if (checkedCount == 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No checked items to remove.'),
-        ),
-      );
-      return;
-    }
-
     setState(() {
       _items.removeWhere((item) => item.gotIt);
     });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          '$checkedCount checked item(s) removed.',
-        ),
-      ),
-    );
   }
 
   @override
   void dispose() {
-    // Release both text controllers
     _nameController.dispose();
     _priceController.dispose();
     super.dispose();
@@ -190,40 +144,29 @@ class _CartScreenState extends State<CartScreen> {
           'Mini Shopping Cart',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        backgroundColor: teal,
+        backgroundColor: navyBlue,
         foregroundColor: Colors.white,
         elevation: 0,
       ),
       body: SafeArea(
         child: Column(
           children: [
-            // Shopping cart list
             Expanded(
               child: _items.isEmpty
-                  ? const Center(
-                      child: Text('Your shopping cart is empty'),
-                    )
+                  ? const Center(child: Text('Your shopping cart is empty'))
                   : ListView.builder(
-                      padding: const EdgeInsets.fromLTRB(
-                        16,
-                        12,
-                        16,
-                        8,
-                      ),
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
                       itemCount: _items.length,
                       itemBuilder: (context, index) {
                         return CartItemTile(
                           item: _items[index],
                           onIncrease: () => _increase(index),
                           onDecrease: () => _decrease(index),
-                          onToggle: (value) =>
-                              _toggle(index, value),
+                          onToggle: (value) => _toggle(index, value),
                         );
                       },
                     ),
             ),
-
-            // Cart summary and add-item form
             _buildSummary(),
             _buildAddForm(),
           ],
@@ -232,16 +175,12 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  // Display the number of items and the current total
   Widget _buildSummary() {
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 4, 16, 8),
-      padding: const EdgeInsets.symmetric(
-        horizontal: 12,
-        vertical: 12,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFFDDEFF0),
+        color: const Color(0xFFDCEEF7),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -255,7 +194,7 @@ class _CartScreenState extends State<CartScreen> {
           Text(
             'Total: PHP ${_total.toStringAsFixed(2)}',
             style: const TextStyle(
-              color: darkTeal,
+              color: navyBlue,
               fontWeight: FontWeight.bold,
               fontSize: 14,
             ),
@@ -265,7 +204,6 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  // Form for adding new shopping items
   Widget _buildAddForm() {
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
@@ -286,18 +224,10 @@ class _CartScreenState extends State<CartScreen> {
         children: [
           Row(
             children: [
-              // Item name input
               Expanded(
                 flex: 3,
                 child: TextField(
                   controller: _nameController,
-                  onChanged: (value) {
-                    if (_nameError != null) {
-                      setState(() {
-                        _nameError = null;
-                      });
-                    }
-                  },
                   decoration: InputDecoration(
                     labelText: 'Item name',
                     errorText: _nameError,
@@ -307,23 +237,12 @@ class _CartScreenState extends State<CartScreen> {
                 ),
               ),
               const SizedBox(width: 8),
-
-              // Price input
               Expanded(
                 flex: 2,
                 child: TextField(
                   controller: _priceController,
-                  onChanged: (value) {
-                    if (_priceError != null) {
-                      setState(() {
-                        _priceError = null;
-                      });
-                    }
-                  },
                   keyboardType:
-                      const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
+                      const TextInputType.numberWithOptions(decimal: true),
                   decoration: InputDecoration(
                     labelText: 'Price',
                     prefixText: '₱ ',
@@ -336,19 +255,15 @@ class _CartScreenState extends State<CartScreen> {
             ],
           ),
           const SizedBox(height: 10),
-
-          // Add and clear-checked buttons
           Row(
             children: [
               Expanded(
                 child: ElevatedButton(
                   onPressed: _addItem,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: teal,
+                    backgroundColor: oceanBlue,
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 13,
-                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 13),
                   ),
                   child: const Text('Add'),
                 ),
@@ -358,11 +273,9 @@ class _CartScreenState extends State<CartScreen> {
                 child: OutlinedButton(
                   onPressed: _clearChecked,
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: teal,
-                    side: const BorderSide(color: teal),
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 13,
-                    ),
+                    foregroundColor: oceanBlue,
+                    side: const BorderSide(color: oceanBlue),
+                    padding: const EdgeInsets.symmetric(vertical: 13),
                   ),
                   child: const Text('Clear checked'),
                 ),
@@ -375,7 +288,6 @@ class _CartScreenState extends State<CartScreen> {
   }
 }
 
-// Stateless widget for displaying one cart item
 class CartItemTile extends StatelessWidget {
   final CartItem item;
   final VoidCallback onIncrease;
@@ -401,16 +313,12 @@ class CartItemTile extends StatelessWidget {
         side: const BorderSide(color: borderColor),
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 6,
-          vertical: 8,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
         child: Row(
           children: [
-            // Checkbox for marking an item as collected
             Checkbox(
               value: item.gotIt,
-              activeColor: teal,
+              activeColor: oceanBlue,
               onChanged: onToggle,
             ),
             Expanded(
@@ -424,15 +332,13 @@ class CartItemTile extends StatelessWidget {
                       decoration: item.gotIt
                           ? TextDecoration.lineThrough
                           : TextDecoration.none,
-                      color: item.gotIt
-                          ? Colors.grey
-                          : Colors.black87,
+                      color: item.gotIt ? Colors.grey : Colors.black87,
                     ),
                   ),
                   Text(
                     'PHP ${item.price.toStringAsFixed(2)} each',
                     style: const TextStyle(
-                      color: Colors.blueGrey,
+                      color: Color(0xFF526779),
                       fontSize: 11,
                     ),
                   ),
@@ -447,9 +353,7 @@ class CartItemTile extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 8),
               child: Text(
                 '${item.quantity}',
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                ),
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
             _QuantityButton(
@@ -464,7 +368,6 @@ class CartItemTile extends StatelessWidget {
   }
 }
 
-// Reusable stateless button for quantity changes
 class _QuantityButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback onPressed;
@@ -483,8 +386,8 @@ class _QuantityButton extends StatelessWidget {
         onPressed: onPressed,
         style: OutlinedButton.styleFrom(
           padding: EdgeInsets.zero,
-          foregroundColor: teal,
-          side: const BorderSide(color: teal),
+          foregroundColor: oceanBlue,
+          side: const BorderSide(color: oceanBlue),
           shape: const CircleBorder(),
         ),
         child: Icon(icon, size: 17),
